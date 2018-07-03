@@ -6,7 +6,7 @@ import csv
 inputSheet = '1to4.csv'
 outputSheet = 'experimentResults.csv'
 
-cseId = "custom search engine id"
+cseId = "custom search engine ID"
 devKey = "API key"
 
 searchTerm = ""
@@ -14,7 +14,7 @@ counter = 0
 error1 = 'invalid search'
 error2 = 'HTTP error'
 searchInfo = []
-ignoredWords = 'test 1 2 3'
+ignoredWords = 'walmart news petassure hotel insurance'
 
 
 # take list from csv and plug into array
@@ -60,33 +60,61 @@ def countAndPrint(counterToUse, messageToPrint):
 # execute google search and do all the cool stuff
 def executeSearch(arrayToUse, counterToUse, wordsToIgnore):
     for each in arrayToUse:
-        print(each)
+        #print(each)
         each = str(each).strip("['']")
-        print(each)
-        twoWords = each.split()
-        twoWords = twoWords[0] + ' ' + twoWords[1]
-        print(twoWords)
+        #print(each)
+        words = each.split()
+        words = words[len(words)-2]
+        words2 = words[0]
+        #print(words)
         try:
-            results = google_search(each, cseId, num=1, excludeTerms=wordsToIgnore)
+            results = google_search(each, cseId, excludeTerms=wordsToIgnore)
             counterToUse += 1
             if (results == error1):
                 countAndPrint(counterToUse, error1)
                 writeCsv(outputSheet, error1)
             else:
-                for eachResult in results:
-                    if twoWords in str(eachResult):
-                        link = eachResult.get('link')
-                        link = getDomainName(link)
-                        countAndPrint(counterToUse, link)
-                        writeCsv(outputSheet, link)
-                        break
-                    else:
-                        link = 'no good links'
-                        countAndPrint(counterToUse, link)
-                        writeCsv(outputSheet, link)
+                if words or words2 in str(results):
+                    for eachResult in results:
+                        if words or words2 in str(eachResult):
+                            link = eachResult.get('link')
+                            link = getDomainName(link)
+                            countAndPrint(counterToUse, link)
+                            writeCsv(outputSheet, link)
+                            break
+                else:
+                    try:
+                        results = google_search(each, cseId, excludeTerms=wordsToIgnore, start=10)
+                        #counterToUse += 1
+                        if (results == error1):
+                            countAndPrint(counterToUse, error1)
+                            writeCsv(outputSheet, error1)
+                        else:
+                            if words or words2 in str(results):
+                                for eachResult in results:
+                                    if words or words2 in str(eachResult):
+                                        link = eachResult.get('link')
+                                        link = getDomainName(link)
+                                        countAndPrint(counterToUse, link)
+                                        writeCsv(outputSheet, link)
+                                        break
+                            else:
+                                link = 'no good links'
+                                countAndPrint(counterToUse, link)
+                                writeCsv(outputSheet, link)
+                    except HttpError:
+                        countAndPrint(counterToUse, error2)
+                        writeCsv(outputSheet, error2)
+                    except TypeError:
+                        countAndPrint(counterToUse, 'type error')
+                        writeCsv(outputSheet, 'type error')
         except HttpError:
             countAndPrint(counterToUse, error2)
             writeCsv(outputSheet, error2)
+        except TypeError:
+            countAndPrint(counterToUse, 'type error')
+            writeCsv(outputSheet, 'type error')
+
 
 
 ###################################main loop
@@ -94,3 +122,39 @@ def executeSearch(arrayToUse, counterToUse, wordsToIgnore):
 prepSearchArray(inputSheet, searchInfo)
 
 executeSearch(searchInfo, counter, ignoredWords)
+
+
+
+
+
+########testingbelow
+
+
+# word = 'westbrook'
+#
+# test = google_search('Westbrook Animal Hospital Westbrook ME', cseId, excludeTerms=ignoredWords)
+#
+# print(str(test))
+#
+# if word in str(test):
+#     for each in test:
+#         if word in str(each):
+#             link = each.get('link')
+#             link = getDomainName(link)
+#             print(link)
+#             break
+#         else:
+#             print('checking next result...')
+# else:
+#     test = google_search('Bowen Animal Hospital Abbeville SC', cseId, excludeTerms=ignoredWords, start=10)
+#     if word in str(test):
+#         for each in test:
+#             if word in str(each):
+#                 link = each.get('link')
+#                 link = getDomainName(link)
+#                 print(link)
+#                 break
+#             else:
+#                 print('checking next result...')
+#     else:
+#         print('nothing')
