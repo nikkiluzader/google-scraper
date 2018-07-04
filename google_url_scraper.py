@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 import csv
 
 
-# GLOBAL CONSTANTS #############################################################
+# GLOBALS ######################################################################
 
 ERROR1 = 'invalid search'
 ERROR2 = 'HTTP error'
@@ -68,13 +68,15 @@ def write_csv(sheet_to_write, thing_to_write):
 
 
 def count_and_print(message_to_print):
-    """ # count handling """
+    """ count handling """
 
     print(str(COUNTER) + ' ' + message_to_print)
 
 
-def execute_search(array_to_use, words_to_ignore, api_key, cse_id):
+def execute_search(array_to_use, words_to_ignore, output_sheet, api_key, cse_id):
     """ execute google search and do all the cool stuff """
+
+    global COUNTER # Needed to modify global copy of COUNTER
 
     for each in array_to_use:
         # Get second to last word and first word of each line
@@ -86,9 +88,9 @@ def execute_search(array_to_use, words_to_ignore, api_key, cse_id):
         try:
             results = google_search(each, cse_id, api_key, excludeTerms=words_to_ignore)
             COUNTER += 1
-            if (results == error1):
-                count_and_print(error1)
-                write_csv(outputSheet, error1)
+            if (results == ERROR1):
+                count_and_print(ERROR1)
+                write_csv(output_sheet, ERROR1)
             else:
                 if second_to_last_word or first_word in str(results):
                     for eachResult in results:
@@ -96,14 +98,14 @@ def execute_search(array_to_use, words_to_ignore, api_key, cse_id):
                             link = eachResult.get('link')
                             link = get_domain_name(link)
                             count_and_print(link)
-                            write_csv(outputSheet, link)
+                            write_csv(output_sheet, link)
                             break
                 else:
                     try:
                         results = google_search(each, cse_id, api_key, excludeTerms=words_to_ignore, start=10)
-                        if (results == error1):
-                            count_and_print(error1)
-                            write_csv(outputSheet, error1)
+                        if (results == ERROR1):
+                            count_and_print(ERROR1)
+                            write_csv(output_sheet, ERROR1)
                         else:
                             if second_to_last_word or first_word in str(results):
                                 for eachResult in results:
@@ -111,24 +113,24 @@ def execute_search(array_to_use, words_to_ignore, api_key, cse_id):
                                         link = eachResult.get('link')
                                         link = get_domain_name(link)
                                         count_and_print(link)
-                                        write_csv(outputSheet, link)
+                                        write_csv(output_sheet, link)
                                         break
                             else:
                                 link = 'no good links'
                                 count_and_print(link)
-                                write_csv(outputSheet, link)
+                                write_csv(output_sheet, link)
                     except HttpError:
-                        count_and_print(error2)
-                        write_csv(outputSheet, error2)
+                        count_and_print(ERROR2)
+                        write_csv(output_sheet, ERROR2)
                     except TypeError:
                         count_and_print('type error')
-                        write_csv(outputSheet, 'type error')
+                        write_csv(output_sheet, 'type error')
         except HttpError:
-            count_and_print(error2)
-            write_csv(outputSheet, error2)
+            count_and_print(ERROR2)
+            write_csv(output_sheet, ERROR2)
         except TypeError:
             count_and_print('type error')
-            write_csv(outputSheet, 'type error')
+            write_csv(output_sheet, 'type error')
 
 def main ():
     """ main loop """
@@ -138,13 +140,13 @@ def main ():
     with open('.env.json') as json_data:
         ENV = json.load(json_data)
 
-    inputSheet = '1to4.csv'
-    outputSheet = 'experimentResults.csv'
+    input_sheet = '1to4.csv'
+    output_sheet = 'experimentResults.csv'
 
-    ignoredWords = 'walmart news petassure hotel insurance'
+    ignored_words = 'walmart news petassure hotel insurance'
 
-    search_info = prep_search_array(inputSheet)
-    execute_search(search_info, ignoredWords, ENV["API_KEY"], ENV["CSE_ID"])
+    search_info = prep_search_array(input_sheet)
+    execute_search(search_info, ignored_words, output_sheet, ENV["API_KEY"], ENV["CSE_ID"])
 
 if __name__ == '__main__':
     main()
