@@ -76,42 +76,38 @@ def count_and_print(message_to_print):
 def execute_search(array_to_use, words_to_ignore, output_sheet, api_key, cse_id):
     """ execute google search and do all the cool stuff """
 
-    global COUNTER # Needed to modify global copy of COUNTER
+    global COUNTER  # Needed to modify global copy of COUNTER
 
     for each in array_to_use:
-        # Get second to last word and first word of each line
-        each = str(each).strip("['']")
-        words = each.split()
-        second_to_last_word = words[len(words)-2]
-        first_word = words[0]
-
         try:
-            results = google_search(each, cse_id, api_key, excludeTerms=words_to_ignore)
+            results = google_search(
+                each, cse_id, api_key, excludeTerms=words_to_ignore)
             COUNTER += 1
             if (results == ERROR1):
                 count_and_print(ERROR1)
                 write_csv(output_sheet, ERROR1)
             else:
-                if second_to_last_word or first_word in str(results):
+                if "required-term" in str(results):
                     for eachResult in results:
-                        if second_to_last_word or first_word in str(eachResult):
-                            link = eachResult.get('link')
-                            link = get_domain_name(link)
+                        if "required-term" in str(eachResult):
+                            link = eachResult.get('displayLink')
+                            # link = get_domain_name(link)
                             count_and_print(link)
                             write_csv(output_sheet, link)
                             break
                 else:
                     try:
-                        results = google_search(each, cse_id, api_key, excludeTerms=words_to_ignore, start=10)
+                        results = google_search(
+                            each, cse_id, api_key, excludeTerms=words_to_ignore, start=10)
                         if (results == ERROR1):
                             count_and_print(ERROR1)
                             write_csv(output_sheet, ERROR1)
                         else:
-                            if second_to_last_word or first_word in str(results):
+                            if "required-term" in str(results):
                                 for eachResult in results:
-                                    if second_to_last_word or first_word in str(eachResult):
-                                        link = eachResult.get('link')
-                                        link = get_domain_name(link)
+                                    if "required-term" in str(eachResult):
+                                        link = eachResult.get('displayLink')
+                                        # link = get_domain_name(link)
                                         count_and_print(link)
                                         write_csv(output_sheet, link)
                                         break
@@ -132,7 +128,8 @@ def execute_search(array_to_use, words_to_ignore, output_sheet, api_key, cse_id)
             count_and_print('type error')
             write_csv(output_sheet, 'type error')
 
-def main ():
+
+def main():
     """ main loop """
 
     import json
@@ -140,13 +137,15 @@ def main ():
     with open('.env.json') as json_data:
         ENV = json.load(json_data)
 
-    input_sheet = '1to4.csv'
-    output_sheet = 'experimentResults.csv'
+    input_sheet = 'test.csv'
+    output_sheet = 'results.csv'
 
-    ignored_words = 'walmart news petassure hotel insurance'
+    ignored_words = ''
 
     search_info = prep_search_array(input_sheet)
-    execute_search(search_info, ignored_words, output_sheet, ENV["API_KEY"], ENV["CSE_ID"])
+    execute_search(search_info, ignored_words, output_sheet,
+                   ENV["API_KEY"], ENV["CSE_ID"])
+
 
 if __name__ == '__main__':
     main()
