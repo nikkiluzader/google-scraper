@@ -73,7 +73,7 @@ def count_and_print(message_to_print):
     print(str(COUNTER) + ' ' + message_to_print)
 
 
-def execute_search(array_to_use, words_to_ignore, output_sheet, api_key, cse_id):
+def execute_search(array_to_use, required_words, output_sheet, api_key, cse_id):
     """ execute google search and do all the cool stuff """
 
     global COUNTER  # Needed to modify global copy of COUNTER
@@ -81,15 +81,15 @@ def execute_search(array_to_use, words_to_ignore, output_sheet, api_key, cse_id)
     for each in array_to_use:
         try:
             results = google_search(
-                each, cse_id, api_key, excludeTerms=words_to_ignore)
+                each, cse_id, api_key, exactTerms=required_words)
             COUNTER += 1
             if (results == ERROR1):
                 count_and_print(ERROR1)
                 write_csv(output_sheet, ERROR1)
             else:
-                if "required-term" in str(results):
+                if "important-word" in str(results):
                     for eachResult in results:
-                        if "required-term" in str(eachResult):
+                        if "important-word" in str(eachResult):
                             link = eachResult.get('displayLink')
                             # link = get_domain_name(link)
                             count_and_print(link)
@@ -98,14 +98,14 @@ def execute_search(array_to_use, words_to_ignore, output_sheet, api_key, cse_id)
                 else:
                     try:
                         results = google_search(
-                            each, cse_id, api_key, excludeTerms=words_to_ignore, start=10)
+                            each, cse_id, api_key, exactTerms=required_words, start=10)
                         if (results == ERROR1):
                             count_and_print(ERROR1)
                             write_csv(output_sheet, ERROR1)
                         else:
-                            if "required-term" in str(results):
+                            if "important-word" in str(results):
                                 for eachResult in results:
-                                    if "required-term" in str(eachResult):
+                                    if "important-word" in str(eachResult):
                                         link = eachResult.get('displayLink')
                                         # link = get_domain_name(link)
                                         count_and_print(link)
@@ -138,12 +138,12 @@ def main():
         ENV = json.load(json_data)
 
     input_sheet = 'test.csv'
-    output_sheet = 'results.csv'
+    output_sheet = 'res.csv'
 
-    ignored_words = ''
+    required_words = 'vet'
 
     search_info = prep_search_array(input_sheet)
-    execute_search(search_info, ignored_words, output_sheet,
+    execute_search(search_info, required_words, output_sheet,
                    ENV["API_KEY"], ENV["CSE_ID"])
 
 
